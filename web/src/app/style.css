@@ -361,8 +361,34 @@ html:has(> body > .stage:not([hidden])) { overflow: hidden; }
   position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; border-radius: 50%;
   transform: translate(calc(-50% + var(--dx, 0px)), -50%); background: rgba(0, 0, 0, 0.4); border: 2px solid rgba(255, 255, 255, 0.5);
 }
-/* a note on the game goes under the row of small buttons */
-.stage:has(> .touch:not([hidden])) .toast:not(.away) { top: calc(max(12px, env(safe-area-inset-top)) + 60px); }
+/* a note on the game, and the frame-rate counter, go under the row of small buttons */
+.stage:has(> .touch:not([hidden])) :is(.toast:not(.away), .hud-fps) { top: calc(max(12px, env(safe-area-inset-top)) + 60px); }
+/* a touch screen held upright: the game in a 4:5 picture at the top, as wide as the screen and at most 60% of its
+ * height, and the menu's button and the touch controls in the space below it, so nothing covers the picture */
+@media (orientation: portrait) {
+  html[data-touch] .stage { --pic-h: min(125vw, 60dvh); }
+  html[data-touch] .stage canvas { inset: 0 auto auto 50%; width: calc(var(--pic-h) * 0.8); height: var(--pic-h); transform: translateX(-50%); }
+  html[data-touch] .stage-menu { top: calc(var(--pic-h) + 12px); }
+  html[data-touch] .touch { --t: calc(var(--pic-h) + 12px); }
+  html[data-touch] .stage:has(> .touch:not([hidden])) :is(.toast:not(.away), .hud-fps) { top: 16px; }
+  html[data-touch] .tc[data-ctl="map"] { left: var(--l); top: calc(var(--t) + 56px); }
+  html[data-touch] .tc[data-ctl="msgs"] { left: calc(var(--l) + 56px); top: calc(var(--t) + 56px); }
+  html[data-touch] .tc[data-ctl="horn"] { left: calc(var(--l) + 112px); top: calc(var(--t) + 56px); }
+  html[data-touch] .stick { top: calc(var(--pic-h) + 64px); height: auto; width: 50%; }
+  /* below the picture, on black: a light backing, and room for bigger pedals and steering */
+  html[data-touch] :is(.tc, .stage-menu) { background: rgba(255, 255, 255, 0.1); }
+  html[data-touch] :is(.tc.on, .stage-menu:active) { background: rgba(255, 255, 255, 0.2); }
+  html[data-touch] .stick-base { background: rgba(255, 255, 255, 0.06); }
+  html[data-touch] .tc[data-ctl="left"] { width: 88px; height: 120px; }
+  html[data-touch] .tc[data-ctl="right"] { left: calc(var(--l) + 96px); width: 88px; height: 120px; }
+  html[data-touch] .tc[data-ctl="gas"] { width: 88px; height: 200px; }
+  html[data-touch] .tc[data-ctl="brake"] { right: calc(var(--r) + 96px); width: 88px; height: 140px; }
+  html[data-touch] .tc[data-ctl="nitro"] { right: calc(var(--r) + 12px); bottom: calc(var(--b) + 212px); width: 64px; height: 64px; }
+  html[data-touch] .tc[data-ctl="hb"] { right: calc(var(--r) + 110px); bottom: calc(var(--b) + 152px); width: 60px; height: 60px; }
+  html[data-touch] .tc[data-ctl="start"] { bottom: calc(var(--b) + 132px); }
+  html[data-touch] .touch[data-steering="tilt"] .tc[data-ctl="hb"] { right: auto; left: calc(var(--l) + 100px); bottom: calc(var(--b) + 24px); }
+  html[data-touch] .touch[data-steering="tilt"] .tc[data-ctl="nitro"] { right: calc(var(--r) + 100px); bottom: calc(var(--b) + 24px); }
+}
 .stick-base.on { border-color: rgba(200, 240, 136, 0.5); }
 .stick-base.on .stick-knob { border-color: var(--lime); background: rgba(0, 0, 0, 0.72); }
 .hud-fps {

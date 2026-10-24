@@ -135,6 +135,7 @@ WEAK void metal_set_blendcolor(unsigned argb){ (void)argb; }
 WEAK void metal_set_clear_color(unsigned argb){ (void)argb; }
 WEAK void metal_set_cull(unsigned m){ (void)m; }
 WEAK void metal_set_depth(unsigned m){ (void)m; }
+WEAK void metal_set_ui_clip(float sy){ (void)sy; }
 WEAK void metal_set_fog(unsigned e, unsigned argb){ (void)e; (void)argb; }
 WEAK void metal_set_ps(int id, const float *c){ (void)id; (void)c; }
 WEAK void metal_set_render_target(unsigned t){ (void)t; }

@@ -16,7 +16,7 @@ export function touchFirst(): boolean { return matchMedia('(pointer: coarse)').m
 
 /** settings.ini keys whose default is another on this device: what applies when neither the file nor the page
  *  address sets them.  Phones: 75% resolution scale (a phone's screen has more pixels than its GPU fills at 60 fps),
- *  and full screen, which a browser tab needs before it may turn the game to landscape. */
+ *  and full screen (no browser bars over the game). */
 export function deviceDefaults(): Record<string, string> {
   return isPhone() ? { render: 'scale:0.75', fullscreen: 'on' } : {};
 }

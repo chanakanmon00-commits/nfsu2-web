@@ -11,7 +11,8 @@
 //   - every Z surface is depth32float, created at the size of the first target
 //     it is used with (the implicit one follows the screen); a size mismatch
 //     binds a scratch depth and turns the Z test off;
-//   - no viewport/scissor (com.c ignores SetViewport), full-target passes;
+//   - no viewport (com.c ignores SetViewport), full-target passes; a scissor only
+//     for the 2D UI's 4:3 band on a screen narrower than 4:3 (GwDraw.clip);
 //   - StretchRect: a copy when size and format match, else a scaled quad.
 // Deliberate differences: the clear colour is the frame's own (Clear records
 // in stream order) rather than a global read at encode time; scaled blits do
@@ -532,6 +533,8 @@ export class Encoder {
     const touched = new Set<number>();
     let clearArgb = u32[fw + F.clearArgb];
     let cPipe: GPURenderPipeline | null = null, cSrc = -1, cK = -1, cP = -1, cBcol = -1, cIx = '';
+    // the pass's size, and the scissor in effect in it (a GwDraw.clip value; 0 = the whole target)
+    let passW = 0, passH = 0, cClip = 0;
     // the previous draw's pipeline (pipelines outlive passes, so this survives a pass change)
     let lastKey = -1, lastPipe: GPURenderPipeline | null | undefined;
     const b1 = this.b1, dyn = this.dyn;
@@ -548,6 +551,7 @@ export class Encoder {
         view = t.cube ? t.rtViews[face ? Math.min(face - 1, 5) : 0] : t.rtViews[0];
         w = t.w; h = t.h; key = (target & 0xFFFF) * 8 + face; passCube = target & 0xFFFF;
       }
+      passW = w; passH = h;
       passKey = target ? (target & 0xFFFF) : -1;
       const first = key === -1 ? !screenTouched : !touched.has(key);
       let zv: GPUTextureView | undefined, zclear = false, zval = 1;
@@ -576,7 +580,7 @@ export class Encoder {
       if (key === -1) screenTouched = true; else touched.add(key);
       passes++; this.calls.pass++;
       if (tr) tr.push(`  pass ${passes}: ${target ? `tex ${target & 0xFFFF}${(target >>> 16) ? ` face ${(target >>> 16) - 1}` : ''}` : 'SCREEN'} ${w}x${h} color ${first ? `clear ${c.toString(16)}` : 'load'}, z ${zv ? `zid ${zid} ${zclear ? `clear ${zval}` : 'load'}` : `none (zid ${zid})`}`);
-      cPipe = null; cSrc = -1; cK = -1; cP = -1; b1[0] = -1; cBcol = -1; cIx = '';
+      cPipe = null; cSrc = -1; cK = -1; cP = -1; b1[0] = -1; cBcol = -1; cIx = ''; cClip = 0;
       return p;
     };
 
@@ -639,6 +643,14 @@ export class Encoder {
       lastKey = key; lastPipe = pipe;
       if (!pipe) { skipped++; if (tr) tr.push(`  #${i} draw skipped: no pipeline (ps ${psEff} vs ${vsid})`); continue; }
       if (pipe !== cPipe) { p.setPipeline(pipe); cPipe = pipe; this.calls.pipe++; }
+      // the 2D UI on a screen narrower than 4:3 stays in its 4:3 band (gpu_proto.h GwDraw.clip), on the
+      // back buffer or a target of its size
+      const clip = passW === bbW && passH === bbH ? u32[w + D.clip] : 0;
+      if (clip !== cClip) {
+        const y0 = Math.min(clip & 0xFFFF, passH), y1 = Math.min(clip >>> 16, passH);
+        if (clip) p.setScissorRect(0, y0, passW, Math.max(0, y1 - y0)); else p.setScissorRect(0, 0, passW, passH);
+        cClip = clip;
+      }
 
       // PS parameters: a new slot only when they differ from the previous draw's
       const psci = u32[w + D.psci];

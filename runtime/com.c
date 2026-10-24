@@ -1384,6 +1384,8 @@ static void ws_log_draw(const char *kind, const VSConst *vsk, int cx, int cw){
             vsk->f[cw][0], vsk->f[cw][1], vsk->f[cw][2], vsk->f[cw][3]);
     fprintf(stderr, "\n");
 }
+/* this draw's 2D UI band (aspect_apply), 1 = none */
+static float g_ui_clip = 1.f;
 static const VSConst *aspect_apply(const VSConst *vsk, const VSProg *prog){
     if (g_aspfix == 1.f || !prog) return vsk;
     unsigned vs = g_cur_vs;
@@ -1427,6 +1429,11 @@ static const VSConst *aspect_apply(const VSConst *vsk, const VSProg *prog){
         /* A quad the game draws over the whole target (the rain tint) is in
          * HUD units too, but must cover the whole screen (widescreen.c). */
         if (ws_fill_target()) sx = sy = 1.f;
+        /* Narrower than 4:3 the HUD space is a band across the middle, and
+         * what the game parks outside 640x480 would show above and below it:
+         * the draw is kept to the band (gpu_web.c metal_set_ui_clip), but for
+         * the cutscene bars, which belong on the picture's edges. */
+        if (sy < 1.f && !ws_take_border_quad()) g_ui_clip = sy;
         if (ENVC("ASPLOG")){ static int no = 0;
             if (no < 6){ no++;
                 fprintf(stderr,"  [asp-ortho] vs=%u cx=%d cw=%d  c%d=(%.4f %.4f %.4f %.4f)"
@@ -1576,7 +1583,11 @@ static int draw_up(uint32_t pt, uint32_t nv, uint32_t vp, uint32_t stride){
         g_gpuvs = (e8 && *e8 && *e8 != '0') ? 1 : 0; }
     const VSProg *prog = (g_cur_vs && g_cur_vs < MAXVS) ? g_vsprog[g_cur_vs] : 0;
     vsk = fixmat_apply(vsk);
+    g_ui_clip = 1.f;
     vsk = aspect_apply(vsk, prog);
+#ifdef __wasm__
+    { void metal_set_ui_clip(float); metal_set_ui_clip(g_ui_clip); }
+#endif
 
     /* Declaration parsing ONCE per (declaration, shader).
      * Previously every draw rebuilt it from scratch, reading up to 32

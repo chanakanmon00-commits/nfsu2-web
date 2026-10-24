@@ -22,7 +22,7 @@ import { checkBrowser, checkGpu, checkIsolation, checkStorage, firefoxVersion, f
 import { loadGame, serverRev, type Loaded } from './loader';
 import { claimInstance } from './instance';
 import { LogRing, downloadBlob, stamp } from './logs';
-import { enterFullscreen, exitFullscreen, isFullscreen, keepScreenOn, lockLandscape, measureRefresh, settledSize, trackCanvasSize } from './display';
+import { enterFullscreen, exitFullscreen, isFullscreen, keepScreenOn, measureRefresh, settledSize, trackCanvasSize } from './display';
 import { deviceDefaults, markTouch, padSeen, touchFirst } from './device';
 import { markPad, padPress, pageDialog } from './padnav';
 import { TouchControls } from './touch';
@@ -305,8 +305,6 @@ async function startGame() {
     const fs = await enterFullscreen(stage);
     if (!fs.ok) fsNote = `Full screen was not allowed here; ${menuName()} has it.`;
     else if (!fs.locked && !touchFirst()) fsNote = 'Esc leaves full screen in this browser (no keyboard lock).';
-    // a phone or tablet turns to landscape before the game takes its size from the canvas
-    if (fs.ok && touchFirst()) log.add(`[app] landscape: ${await Promise.race([lockLandscape(), new Promise<boolean>(r => setTimeout(r, 2000, false))]) ? 'locked' : 'not locked'}`);
   }
   const size = await settledSize(canvas);
   await Promise.race([refreshMeasured, new Promise(r => setTimeout(r, 2000))]);
@@ -461,7 +459,7 @@ function stopFatal(what: string) {
 
 function toggleFullscreen() {
   if (isFullscreen()) exitFullscreen();
-  else void enterFullscreen($('#stage')).then(r => { if (!r.ok) toast('Full screen was not allowed.', 4000); else if (touchFirst()) void lockLandscape(); });
+  else void enterFullscreen($('#stage')).then(r => { if (!r.ok) toast('Full screen was not allowed.', 4000); });
 }
 
 /** how the page's menu opens here, for the hints: F9, the ☰ button on a touch screen, Home on a controller */

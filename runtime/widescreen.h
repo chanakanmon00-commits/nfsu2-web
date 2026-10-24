@@ -38,6 +38,9 @@ void  ws_hud_marker(float *x, float *y);
 /* 1 while the game draws a quad over a whole render target (sub_005c7140,
  * e.g. the rain tint): com.c's aspect_apply does not narrow it to 4:3. */
 int   ws_fill_target(void);
+/* 1 once after a cutscene bar's quad was placed (its draw follows): com.c
+ * does not keep that draw to the HUD's 4:3 band. */
+int   ws_take_border_quad(void);
 /* 1 if the hook at ip was a widescreen site (guest_hook returns then). */
 int   ws_hook(CPU *c, uint32_t ip);
 void  ws_report(void);

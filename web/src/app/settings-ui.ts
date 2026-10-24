@@ -56,7 +56,7 @@ const GROUPS: Group[] = [
     { key: 'watchdog', label: 'Stall report', help: 'Seconds without a frame before the log gets a report of every game thread (0 = off).', c: { t: 'num', min: 0, step: 1, unit: 's' }, more: true },
   ] },
   { title: 'Display', items: [
-    { key: 'fullscreen', label: 'Full screen on Play', help: 'Off plays in this browser window; the menu (F9) has full screen while you play. Hold Esc to leave it. On by default on phones, which then turn to landscape.', c: { t: 'switch' } },
+    { key: 'fullscreen', label: 'Full screen on Play', help: 'Off plays in this browser window; the menu (F9) has full screen while you play. Hold Esc to leave it. On by default on phones.', c: { t: 'switch' } },
     { key: 'render', label: 'Resolution scale', help: 'Scales the game\'s screen-size resolution (its default), per side: 50% renders a quarter of the pixels. Lower is faster and softer. Phones start at 75%.', c: { t: 'seg', opts: [['scale:0.5', '50%'], ['scale:0.75', '75%'], ['backing', '100%'], ['scale:1.5', '150%'], ['scale:2', '200%']] } },
     { key: 'fps', label: 'Frame rate', help: 'Auto follows the display (120 on a 120 Hz screen, 240 on a 240 Hz one). Online and LAN races run at up to 120, as on a PC; cutscenes stay at 30.', c: { t: 'seg', opts: [['auto', 'Auto'], ['60', '60'], ['120', '120'], ['240', '240']] } },
     { key: 'hud', label: 'Race HUD', help: 'Wide anchors it to the screen edges; 4:3 is the original centred layout.', c: { t: 'seg', opts: [['wide', 'Wide'], ['43', '4:3']] }, more: true },

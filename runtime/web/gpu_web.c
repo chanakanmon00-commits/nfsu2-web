@@ -570,6 +570,17 @@ void metal_set_ps(int id, const float *c32){
     if (c32 && memcmp(g_cur_psc, c32, sizeof g_cur_psc)){ memcpy(g_cur_psc, c32, sizeof g_cur_psc); g_psc_ver++; }
 }
 void metal_set_texproj(const float p[4]){ memcpy(g_cur_proj, p, sizeof g_cur_proj); }
+/* com.c, every draw: the 2D UI on a screen narrower than 4:3 is shown in a 4:3
+ * band across the middle (ws_ui_y = sy < 1, the band's share of the height);
+ * the draw is kept inside it, so what the game parks outside its 640x480 HUD
+ * space stays hidden as on a 4:3 screen.  sy = 1: the whole target. */
+static uint32_t g_cur_clip;
+void metal_set_ui_clip(float sy){
+    uint32_t h = g_bb_h;
+    if (!(sy > 0.f && sy < 1.f) || !h){ g_cur_clip = 0; return; }
+    uint32_t y0 = (uint32_t)lroundf((float)h * (1.f - sy) * 0.5f), y1 = (uint32_t)lroundf((float)h * (1.f + sy) * 0.5f);
+    g_cur_clip = y0 | (y1 > h ? h : y1) << 16;
+}
 void metal_begin_frame(void){ }
 
 /* ---- records ------------------------------------------------------------- */
@@ -596,6 +607,7 @@ static GwDraw *rec_draw(Buf *B, unsigned tex){
     memcpy(D->smp, g_cur_smp, sizeof D->smp);
     D->bcol = g_cur_bcol; D->cull = g_cur_cull;
     memcpy(D->fogv, g_cur_fog, sizeof D->fogv);
+    D->clip = g_cur_clip;
     return D;
 }
 void metal_draw_tv(const TVert *src, unsigned nverts, unsigned prim, unsigned tex){

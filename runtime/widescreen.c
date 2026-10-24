@@ -194,8 +194,11 @@ static float    bitsf(uint32_t u){ float f; memcpy(&f, &u, 4); return f; }
 /* Cutscene letterbox bar: four (x, y, z, w) vertices in 640x480 HUD units,
  * passed to the quad drawer sub_005c5020.  The game draws them from x 0 to
  * 640, i.e. only across the 4:3 middle of a wider screen. */
+static int g_border_quad;
+int ws_take_border_quad(void){ int b = g_border_quad; g_border_quad = 0; return b; }
 static void border_quad(uint32_t v){
     if (!v || !mem_is_committed(v) || !mem_is_committed(v + 63u)) return;
+    g_border_quad = 1;
     float ex = hud_extra_x() + 1.f, ey = hud_extra_y() + 1.f;
     for (int i = 0; i < 4; i++){
         uint32_t a = v + 16u * (uint32_t)i;
@@ -351,6 +354,18 @@ int ws_hook(CPU *c, uint32_t ip){
         if (g_redirty_cap && metal_frames() < g_redirty_until){
             g_redirty_cap--; g_hits[11]++;
             if (mem_is_committed(c->edi + 0x1fu)) MR32(c->edi + 0x1cu) |= 0x400000u;
+        }
+        return 1; }
+    /* The same for a package's top-level objects: the package loop
+     * (sub_00536520) draws them itself, ebx = the object about to be drawn
+     * (a group goes to the traversal above).  The race leaderboard's header
+     * panel is one: turned from portrait to landscape in a race, it stayed
+     * where the portrait screen had it. */
+    case HOOK_SITE(0x00536745): {
+        long metal_frames(void);
+        if (g_redirty_cap && metal_frames() < g_redirty_until){
+            g_redirty_cap--; g_hits[11]++;
+            if (mem_is_committed(c->ebx + 0x1fu)) MR32(c->ebx + 0x1cu) |= 0x400000u;
         }
         return 1; }
     default:

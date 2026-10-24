@@ -2,7 +2,7 @@
 // "fps = auto" can follow a 120 Hz screen), the canvas kept at the
 // device-pixel size of its box, and full screen with Keyboard Lock (so
 // Escape, the game's Back/Pause, reaches the game; hold Escape to leave),
-// landscape on phones and tablets, and the screen kept on while a game runs.
+// and the screen kept on while a game runs.
 
 const COMMON_HZ = [48, 50, 60, 72, 75, 90, 100, 120, 144, 165, 180, 240, 360];
 
@@ -66,14 +66,6 @@ export async function lockKeys(): Promise<boolean> {
   const kb = (navigator as any).keyboard as { lock?: (codes?: string[]) => Promise<void> } | undefined;
   if (!kb?.lock || !document.fullscreenElement) return false;
   try { await kb.lock(); return true; } catch { return false; }
-}
-
-/** The screen turned to landscape and held there (a phone or tablet in full screen: Android's browsers allow the lock
- *  only then, and lift it when full screen ends).  Resolves once it turned, false where the browser refuses. */
-export async function lockLandscape(): Promise<boolean> {
-  const o = screen.orientation as ScreenOrientation & { lock?(o: string): Promise<void> };
-  if (typeof o?.lock !== 'function') return false;
-  try { await o.lock('landscape'); return true; } catch { return false; }
 }
 
 /**
